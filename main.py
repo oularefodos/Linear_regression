@@ -8,10 +8,14 @@ def load_dataset(filename):
         data = np.loadtxt(filename, delimiter=',', skiprows=1)
         x = data[:, 0];
         y = data[:, -1];
+        x_mean = x.mean();
+        x_std = x.std()
+        
+        x_scaled = (x - x_mean) / x_std
         # print("======= show the dataset =======")
         # plt.scatter(x, y);
         # plt.show();
-        return (x, y);
+        return (x_scaled, y);
     except Exception as e:
         print("An error occurred:", e)
         exit(1);
@@ -23,8 +27,8 @@ if __name__== "__main__":
         exit(1);
     
     filename = args[1];
-    x, y = load_dataset(filename)
+    X, y = load_dataset(filename);
 
     model = Linear_regression();
-    model.fit(x, y, 10, 0.001);
+    model.fit(X, y, 6000, 0.001);
     

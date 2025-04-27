@@ -1,37 +1,69 @@
 import numpy as np
+import json
+import os
 
-class Linear_regression(object):
-    def __init__(self):
-        self.weight = None
-        self.bias = None
+class LinearRegression:
+    """
+    Simple linear regression using gradient descent.
+    """
+    def __init__(self,
+                 learning_rate: float = 0.001,
+                 epochs: int = 7000,
+                 fit_intercept: bool = True,
+                 normalize: bool = True):
+        self.learning_rate = learning_rate
+        self.epochs = epochs
+        self.coef_: float = 0.0
+        self.intercept_: float = 0.0
+        self.mean_: np.ndarray = None
+        self.std_: np.ndarray = None
+        self.cost_history: list[float] = []
 
-    def predict(self, X):
-        return X.dot(self.weight) + self.bias
+    def _normalize(self, X: np.ndarray):
+        self.mean_, self.std_ = X.mean(), X.std() or 1e-8
+        return (X - self.mean_) / self.std_
 
-    def compute_cost(self, y_pred, y):
-        m = len(y)
-        return (1/(2*m)) * np.sum((y_pred - y)**2)
+    def fit(self, X: np.ndarray, y: np.ndarray, model_name="linear_regression"):
+        X = self._normalize(X)
+        m = len(X)
+        for epoch in range(1, self.epochs + 1):
+            y_pred = X.dot(self.coef_) + self.intercept_
+            error = y_pred - y
 
-    def fit(self, X, y, epochs=1000, learning_rate=0.01):
-        if X.ndim == 1:
-            X = X.reshape(-1, 1)
+            # gradients
+            dw = (1/m) * X.T.dot(error)
+            db = (1/m) * np.sum(error)
 
-        m, n = X.shape
-        self.weight = np.zeros(n)
-        self.bias = 0.0
+            # update
+            self.coef_ -= self.learning_rate * dw
+            self.intercept_ -= self.learning_rate * db
 
-        for epoch in range(1, epochs+1):
-            y_pred = self.predict(X)
+            cost = (1/(2*m)) * np.sum(error**2)
+            self.cost_history.append(cost)
 
-            error = y_pred - y                 
-            dw    = (1/m) * X.T.dot(error)       
-            db    = (1/m) * np.sum(error)        
+            # simple logging
+            if epoch == 1 or epoch % (self.epochs // 10) == 0:
+                print(f"Epoch {epoch}/{self.epochs}, cost={cost:.4f}")
 
-            self.weight -= learning_rate * dw
-            self.bias   -= learning_rate * db
-
-            if epoch % (epochs // 10) == 0 or epoch == 1:
-                cost = self.compute_cost(y_pred, y)
-                print(f"Epoch {epoch:4d}/{epochs} — Cost: {cost:.4f}")
-
+        self.coef_ = self.coef_ / self.std_
+        self.intercept_ = (
+            self.intercept_ - (self.coef_ * self.mean_).sum()
+        )
+        self.save_model(model_name)
         return self
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        if not isinstance(X, np.ndarray):
+            X = np.array(X, dtype=float)
+        return X.dot(self.coef_) + self.intercept_
+    
+    def save_model(self, model_name):
+        parameters = {"weight": self.coef_, "bias": self.intercept_}
+        try:
+            with open("model.json", "w") as f:
+                json.dump(parameters, f, indent=4);
+        except Exception as e:
+            # Handling any other exception
+            print(f"An error occurred: {e}")
+    
+

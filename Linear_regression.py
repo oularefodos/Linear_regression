@@ -7,10 +7,8 @@ class LinearRegression:
     Simple linear regression using gradient descent.
     """
     def __init__(self,
-                 learning_rate: float = 0.001,
-                 epochs: int = 7000,
-                 fit_intercept: bool = True,
-                 normalize: bool = True):
+                 learning_rate: float = 0.01,
+                 epochs: int = 1400):
         self.learning_rate = learning_rate
         self.epochs = epochs
         self.coef_: float = 0.0
@@ -23,7 +21,7 @@ class LinearRegression:
         self.mean_, self.std_ = X.mean(), X.std() or 1e-8
         return (X - self.mean_) / self.std_
 
-    def fit(self, X: np.ndarray, y: np.ndarray, model_name="linear_regression"):
+    def fit(self, X: np.ndarray, y: np.ndarray):
         X = self._normalize(X)
         m = len(X)
         for epoch in range(1, self.epochs + 1):
@@ -49,7 +47,7 @@ class LinearRegression:
         self.intercept_ = (
             self.intercept_ - (self.coef_ * self.mean_).sum()
         )
-        self.save_model(model_name)
+        self.save_model()
         return self
 
     def predict(self, X: np.ndarray) -> np.ndarray:
@@ -57,13 +55,23 @@ class LinearRegression:
             X = np.array(X, dtype=float)
         return X.dot(self.coef_) + self.intercept_
     
-    def save_model(self, model_name):
+    def save_model(self):
         parameters = {"weight": self.coef_, "bias": self.intercept_}
         try:
             with open("model.json", "w") as f:
                 json.dump(parameters, f, indent=4);
         except Exception as e:
-            # Handling any other exception
             print(f"An error occurred: {e}")
     
-
+    def load_model(self, model_pathname):
+        try:
+            with open(model_pathname, "r") as file:
+                data = json.load(file);
+                if not data["weight"] or not data["bias"]:
+                    print(data);
+                    print("Corrupted file, weight and bias missing");
+                    exit(1);
+                self.coef_ = data["weight"]
+                self.intercept_ = data["bias"]
+        except Exception as e:
+            print(f"An error occurred: {e}")

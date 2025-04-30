@@ -8,9 +8,6 @@ def load_dataset(filename):
         data = np.loadtxt(filename, delimiter=',', skiprows=1)
         x = data[:, 0];
         y = data[:, -1];
-        # print("======= show the dataset =======")
-        # plt.scatter(x, y);
-        # plt.show();
         return (x, y);
     except Exception as e:
         print("An error occurred:", e)
@@ -34,5 +31,5 @@ if __name__== "__main__":
 
     plt.plot(X, y_pred);
 
-    plt.savefig("out_put.jpg");
+    plt.savefig("data_and_line.jpg");
     

@@ -17,6 +17,9 @@ if __name__== "__main__":
         x_input = input("please enter the kilometre: ")
         if x_input == "exit":
             exit(0);
-        x = int(x_input);
-        y_pred = model.predict(x);
-        print(f"The predicted value of {x} is equal {y_pred}");
+        if x_input.isnumeric() == False:
+            print("only numeric is accepted");
+        else:
+            x = int(x_input);
+            y_pred = model.predict(x);
+            print(f"The predicted value of {x} is equal {y_pred}");
